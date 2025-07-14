@@ -1,0 +1,6 @@
+*.csv
+*.lock
+bazel-*
+.vscode
+*.csv
+*.txt
