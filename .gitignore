@@ -4,3 +4,7 @@ bazel-*
 .vscode
 *.csv
 *.txt
+*.png
+!data/train_mini.csv
+!data/test_mini.csv
+embedding_lr_model
