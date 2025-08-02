@@ -22,7 +22,7 @@ def print_model_params_torch(model):
 class EmbeddingLR(nn.Module):
     def __init__(self, field_dims):
         """
-        用 Embedding lookup 方式实现逻辑回归 emb_dim 设置为 1
+        用 Embedding lookup 方式实现逻辑回归，emb_dim 设置为 1
         """
         super().__init__()
         self.embeddings = nn.ModuleDict({
@@ -31,17 +31,17 @@ class EmbeddingLR(nn.Module):
         with torch.no_grad():
             for _, emb in self.embeddings.items():
                 emb.weight.fill_(1.0)
-        # print('Embeddings: ')
-        # print(self.embeddings)
-        # print("Embeddings weights: ")
-        # print(self.embeddings['device_id'].weight.data)
-
+        print('Embeddings: ')
+        print(self.embeddings)
+        print("Embeddings weights: ")
+        print(self.embeddings['device_id'].weight.data)
         # LR 的输入是特征数量
         input_dim = 1 * len(field_dims)
-        # print('imput_dim: ', input_dim)
-        self.linear = nn.Linear(input_dim, 1)
+        print('imput_dim: ', input_dim)
+        self.linear = nn.Linear(input_dim, 1, bias=True)
         with torch.no_grad():
             self.linear.weight.fill_(1.0)
+            self.linear.bias.fill_(0.0)  # 初始化偏置为0
         self.linear.weight.requires_grad = False  # 不训练线性层权重
 
     def forward(self, x):
@@ -49,12 +49,12 @@ class EmbeddingLR(nn.Module):
         # squeeze -1(最后一个维度) 后: [1,1,1,1,1]
         emb_list = []
         for field in self.embeddings:
-            # print("Self embeddings field: \n")
-            # print(self.embeddings[field])
-            # print("x[field] : \n")
-            # print(x[field])
-            # print("type x[field] \n")
-            # print(type(x[field]))
+            print("Self embeddings field: \n")
+            print(self.embeddings[field])
+            print("x[field] : \n")
+            print(x[field])
+            print("type x[field] \n")
+            print(type(x[field]))
             emb = self.embeddings[field](x[field])  # [batch_size, 1]
             emb_list.append(emb)
         x_emb = torch.cat(emb_list, dim=1)  # [batch_size, num_fields]
@@ -106,13 +106,6 @@ def embedding_lr_train_predict(
             loss = criterion(outputs, batch_y)
             loss.backward()
             optimizer.step()
-        # 训练完一个epoch后，计算训练集AUC
-        model.eval()
-        with torch.no_grad():
-            train_preds = model(train_tensor).cpu().numpy()
-        # train_auc = roc_auc_score(y_train, train_preds)
-        # print(
-        #     f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.6f}, Train AUC: {train_auc:.4f}")
         model.train()
         print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.6f}")
     # 构造示例输入，batch_size=1
@@ -143,24 +136,24 @@ def main():
     }
 
     train = pd.read_csv(
-        "data/train_mini.csv",
+        "data/train.csv",
         dtype=dtype_map,
         usecols=['device_id', 'site_id', 'app_id', 'click']
     )
 
     test = pd.read_csv(
-        "data/test_mini.csv",
+        "data/test.csv",
         dtype=dtype_map,
         usecols=['id', 'device_id', 'site_id', 'app_id']
     )
 
-    features = ['device_id', 'site_id', 'app_id']
+    cat_features = ['device_id', 'site_id', 'app_id']
 
-    x_train = train[features].copy()
-    x_test = test[features].copy()
+    x_train = train[cat_features].copy()
+    x_test = test[cat_features].copy()
     y_train = train['click'].values
     x_train, x_test, field_dims = preprocess_data_with_ordinal_encoder(
-        x_train, x_test, features)
+        x_train, x_test, cat_features)
 
     # Preprepare Data End
     print("Train sampe:")
