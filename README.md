@@ -16,7 +16,7 @@ conda activate recsys-env
 ```
 ### 2. Run the logistic regression model
 ```bash
-python python models/lr.py
+python models/lr.py
 ```
 ### 3. Verify results
 ```bash
