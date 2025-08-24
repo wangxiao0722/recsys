@@ -142,7 +142,7 @@ def main():
 
     predictions = embedding_lr_train_predict(
         x_train, y_train, x_test, field_dims,
-        emb_dim=1, epochs=10, batch_size=1024, lr=0.001
+        emb_dim=1, epochs=10, batch_size=512, lr=0.001
     )
     print('predictions: \n')
     print(predictions)
